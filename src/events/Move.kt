@@ -1,3 +1,10 @@
+package events
+
+import Board
+import pieces.Empty
+import Event
+import Position
+
 class Move(private val from: Position, private val to: Position) : Event {
     override fun doToBoard(board: Board) {
         board.replaceAtPosition(to, board.atPosition(from))

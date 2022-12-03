@@ -1,3 +1,11 @@
+package events
+
+import Board
+import Event
+import Piece
+import Position
+import pieces.Empty
+
 class Capture(private val removedPosition: Position) : Event {
     private var removedPiece: Piece? = null
     override fun doToBoard(board: Board) {

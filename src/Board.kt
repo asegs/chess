@@ -1,3 +1,7 @@
+import events.Capture
+import events.Move
+import pieces.*
+
 class Board {
     private val board: List<MutableList<Piece>>
     private val boardHeight = 8
