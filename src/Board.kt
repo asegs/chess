@@ -4,7 +4,7 @@ import pieces.*
 
 class Board {
     private val board: List<MutableList<Piece>>
-    private val boardHeight = 8
+    val boardHeight = 8
     private val boardWidth = 8
     private val darkBrown = "\u001b[48;2;204;119;34m"
     private val lightBrown = "\u001b[48;2;225;193;110m"
@@ -72,16 +72,43 @@ class Board {
         } else {
             print(blackFg)
         }
-        print("\u2000" + piece.repr() + "\u2000")
+        print(piece.repr())
         print(reset)
     }
 
     fun printBoard() {
+        println(scoreBoard())
+        println(" abcdefgh")
         for (row in 0 until boardHeight) {
+            print(boardHeight - row)
             for (col in 0 until boardWidth) {
                 printSquare(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, board[row][col])
             }
+            print(boardHeight - row)
             println()
+        }
+        println(" abcdefgh")
+    }
+
+    fun printFlippedBoard() {
+        println(scoreBoard())
+        println(" hgfedcba")
+        for (row in boardHeight - 1 downTo 0) {
+            print(boardHeight - row)
+            for (col in boardWidth - 1 downTo 0) {
+                printSquare(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, board[row][col])
+            }
+            print(boardHeight - row)
+            println()
+        }
+        println(" hgfedcba")
+    }
+
+    fun scoreBoard():Int {
+        return board.fold(0) {
+            sum, row -> sum + row.fold(0) {
+                subSum, piece -> subSum + piece.value * if (piece.color == Color.WHITE) 1 else -1
+        }
         }
     }
 
@@ -141,4 +168,8 @@ class Board {
         }
         return moves
     }
+
+//    fun getAllDiagonalMoves(position: Position): List<List<Event>> {
+//
+//    }
 }
