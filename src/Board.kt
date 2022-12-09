@@ -169,7 +169,36 @@ class Board {
         return moves
     }
 
-//    fun getAllDiagonalMoves(position: Position): List<List<Event>> {
-//
-//    }
+    fun getAllDiagonalMoves(position: Position): List<List<Event>> {
+        val moves: MutableList<List<Event>> = mutableListOf();
+        //Northeast
+        var i = 1
+        while (moveIsValid(position, Position(position.row - i, position.col + i))) {
+            val to = Position(position.row - i, position.col + i)
+            moves.add(handlePosition(position, to))
+            i++
+        }
+        //Southeast
+        i = 1
+        while (moveIsValid(position, Position(position.row + i, position.col + i))) {
+            val to = Position(position.row + i, position.col + i)
+            moves.add(handlePosition(position, to))
+            i++
+        }
+        i = 1
+        //Southwest
+        while (moveIsValid(position, Position(position.row + i, position.col - i))) {
+            val to = Position(position.row + i, position.col - i)
+            moves.add(handlePosition(position, to))
+            i++
+        }
+        i = 1
+        //Northwest
+        while (moveIsValid(position, Position(position.row - i, position.col - i))) {
+            val to = Position(position.row - i, position.col - i)
+            moves.add(handlePosition(position, to))
+            i++
+        }
+        return moves;
+    }
 }
