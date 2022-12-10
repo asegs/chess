@@ -2,12 +2,12 @@ package pieces
 
 import Board
 import Color
-import Event
 import Piece
 import Position
+import Tempo
 
 class Queen(color: Color) : Piece(color, 9, "♛") {
-    override fun getValidMoves(board: Board, position: Position): List<List<Event>> {
+    override fun getValidMoves(board: Board, position: Position): List<Tempo> {
         return board.getAllDiagonalMoves(position) + board.getAllStraightMoves(position)
     }
 }

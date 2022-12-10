@@ -1,1 +1,1 @@
-class Position(val row: Int, val col: Int)
+data class Position(val row: Int, val col: Int)

@@ -2,6 +2,8 @@ import events.Capture
 import events.Move
 import pieces.*
 
+//Do check checking by checking if the king could capture any piece of a certain type by using its moveset.
+
 class Board {
     private val board: List<MutableList<Piece>>
     val boardHeight = 8
@@ -127,17 +129,18 @@ class Board {
         } else board[start.row][start.col].color != board[end.row][end.col].color
     }
 
-    fun handlePosition(from: Position, to: Position): List<Event> {
+    fun handlePosition(from: Position, to: Position): Tempo {
         val at = atPosition(to)
-        return if (at.color == Color.EMPTY) {
+        val moves = if (at.color == Color.EMPTY) {
             listOf(Move(from, to))
         } else {
             listOf(Capture(to), Move(from, to))
         }
+        return Tempo(moves, from, to)
     }
 
-    fun getAllStraightMoves(position: Position): List<List<Event>> {
-        val moves: MutableList<List<Event>> = mutableListOf();
+    fun getAllStraightMoves(position: Position): List<Tempo> {
+        val moves: MutableList<Tempo> = mutableListOf();
         //Left
         var i = 1
         while (moveIsValid(position, Position(position.row, position.col - i))) {
@@ -169,36 +172,64 @@ class Board {
         return moves
     }
 
-    fun getAllDiagonalMoves(position: Position): List<List<Event>> {
-        val moves: MutableList<List<Event>> = mutableListOf();
-        //Northeast
-        var i = 1
-        while (moveIsValid(position, Position(position.row - i, position.col + i))) {
-            val to = Position(position.row - i, position.col + i)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        //Southeast
-        i = 1
-        while (moveIsValid(position, Position(position.row + i, position.col + i))) {
-            val to = Position(position.row + i, position.col + i)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        i = 1
-        //Southwest
-        while (moveIsValid(position, Position(position.row + i, position.col - i))) {
-            val to = Position(position.row + i, position.col - i)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        i = 1
-        //Northwest
-        while (moveIsValid(position, Position(position.row - i, position.col - i))) {
-            val to = Position(position.row - i, position.col - i)
-            moves.add(handlePosition(position, to))
-            i++
+    fun getAllDiagonalMoves(position: Position): List<Tempo> {
+        val moves: MutableList<Tempo> = mutableListOf();
+        for (rowMod in listOf(-1,1)) {
+            for (colMod in listOf(-1,1)) {
+                var i = 1
+                while (moveIsValid(position, Position(position.row + (i * rowMod), position.col + (i * colMod)))) {
+                    val to = Position(position.row + (i * rowMod), position.col + (i * colMod))
+                    moves.add(handlePosition(position, to))
+                    i++
+                }
+            }
         }
         return moves;
+    }
+
+    //Currently no en passant or promotion or first move.
+    fun getAllPawnMoves(position: Position): List<Tempo> {
+        val moves: MutableList<Tempo> = mutableListOf();
+        val direction = if (atPosition(position).color ==  Color.WHITE) 1 else -1
+        for (i in -1..1) {
+            val moveTo = Position(position.row - (1 * direction), position.col + i)
+            if (moveIsValid(position, moveTo)) {
+                moves.add(handlePosition(position, moveTo))
+            }
+        }
+        return moves
+    }
+
+    fun getAllKnightMoves(position: Position): List<Tempo> {
+        val moves: MutableList<Tempo> = mutableListOf()
+        for (rowMod in listOf(-1,1)) {
+            for (colMod in listOf(-1,1)) {
+                val long = Position(position.row + (2 * rowMod), position.col + (1 * colMod))
+                val short = Position(position.row + (1 * rowMod), position.col + (2 * colMod))
+                if (moveIsValid(position, long)) {
+                    moves.add(handlePosition(position, long))
+                }
+                if (moveIsValid(position, short)) {
+                    moves.add(handlePosition(position, short))
+                }
+            }
+        }
+        return moves
+    }
+
+    fun getAllKingMoves(position: Position): List<Tempo> {
+        val moves: MutableList<Tempo> = mutableListOf()
+        for (rowMod in -1..1) {
+            for (colMod in -1..1) {
+                if (rowMod == 0 && colMod == 0) {
+                    continue
+                }
+                val to = Position(position.row + rowMod, position.col + colMod)
+                if (moveIsValid(position, to)) {
+                    moves.add(handlePosition(position, to))
+                }
+            }
+        }
+        return moves
     }
 }

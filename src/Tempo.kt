@@ -1,0 +1,1 @@
+data class Tempo(val events:List<Event>, val start:Position, val end:Position)
