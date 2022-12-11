@@ -123,13 +123,26 @@ class Board {
         return board[position.row][position.col]
     }
 
+    fun applySequence(sequence: Tempo) {
+        for (t in sequence.events) {
+            t.doToBoard(this)
+        }
+    }
+
+    fun undoSequence(sequence: Tempo) {
+        for (t in sequence.events.asReversed()) {
+            t.undoToBoard(this)
+        }
+    }
+
     fun moveIsValid(start: Position, end: Position): Boolean {
-        return if (end.row < 0 || end.row >= boardHeight || end.col < 0 || end.col >= boardWidth) {
+        return if ((end.row < 0 || end.row >= boardHeight || end.col < 0 || end.col >= boardWidth)) {
             false
         } else board[start.row][start.col].color != board[end.row][end.col].color
     }
 
     fun handlePosition(from: Position, to: Position): Tempo {
+        //Check if this tempo places you in check
         val at = atPosition(to)
         val moves = if (at.color == Color.EMPTY) {
             listOf(Move(from, to))
@@ -231,5 +244,23 @@ class Board {
             }
         }
         return moves
+    }
+
+    fun inCheck(color: Color): Boolean {
+        //Find all enemy piece
+        //Find king
+        //Run optional heuristic on each piece to exclude it
+        //Find valid moves from king for each enemy piece move set
+        //See if any pieces capturable by that move set are of the same type
+
+        //Stub
+        return false
+    }
+
+    fun inCheckAfterMove(color: Color, sequence: Tempo): Boolean {
+        applySequence(sequence)
+        val inCheck = inCheck(color)
+        undoSequence(sequence)
+        return inCheck
     }
 }
