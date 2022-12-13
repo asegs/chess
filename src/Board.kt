@@ -246,7 +246,23 @@ class Board {
         return moves
     }
 
+    fun otherColor(color: Color): Color {
+        if (color == Color.WHITE) {
+            return Color.BLACK
+        }
+        if (color == Color.BLACK) {
+            return Color.WHITE
+        }
+
+        return Color.EMPTY
+    }
+
     fun inCheck(color: Color): Boolean {
+        val enemyPieces = getAllOfColor(otherColor(color))
+        val kingLocation = findKing(color)
+
+        val possibleThreats = enemyPieces.filter { it.first.couldBeCheck(this, it.second, kingLocation) }
+
         //Find all enemy piece
         //Find king
         //Run optional heuristic on each piece to exclude it
@@ -255,6 +271,29 @@ class Board {
 
         //Stub
         return false
+    }
+
+    fun getAllOfColor(color: Color): MutableList<Pair<Piece, Position>> {
+        val pieces: MutableList<Pair<Piece, Position>> = mutableListOf()
+        for ((rowIdx, row) in board.withIndex()) {
+            for ((colIdx, piece) in row.withIndex()) {
+                if (piece.color == color) {
+                    pieces.add(Pair(piece, Position(rowIdx, colIdx)))
+                }
+            }
+        }
+        return pieces
+    }
+
+    fun findKing(color: Color): Position {
+        for ((rowIdx, row) in board.withIndex()) {
+            for ((colIdx, piece) in row.withIndex()) {
+                if (piece is King && piece.color == color) {
+                    return Position(rowIdx, colIdx)
+                }
+            }
+        }
+        return Position(-1,-1)
     }
 
     fun inCheckAfterMove(color: Color, sequence: Tempo): Boolean {

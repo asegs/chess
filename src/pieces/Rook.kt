@@ -11,4 +11,8 @@ class Rook(color: Color) : Piece(color, 5, "♜") {
     override fun getValidMoves(board: Board, position: Position): List<Tempo> {
         return board.getAllStraightMoves(position)
     }
+
+    override fun couldBeCheck(board: Board, from: Position, to: Position): Boolean {
+        return from.row == to.row || from.col == to.col
+    }
 }
