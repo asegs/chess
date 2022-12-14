@@ -79,6 +79,7 @@ class Board {
     }
 
     fun printBoard() {
+        println(getGameCondition(Color.WHITE))
         println(scoreBoard())
         println(" abcdefgh")
         for (row in 0 until boardHeight) {
@@ -93,6 +94,7 @@ class Board {
     }
 
     fun printFlippedBoard() {
+        println(getGameCondition(Color.BLACK))
         println(scoreBoard())
         println(" hgfedcba")
         for (row in boardHeight - 1 downTo 0) {
@@ -225,7 +227,9 @@ class Board {
         for (i in -1..1) {
             val moveTo = Position(position.row - (1 * direction), position.col + i)
             val validity = moveIsValid(position, moveTo)
-            if (validity != MoveStatus.INVALID) {
+            if (validity == MoveStatus.CAPTURE && i != 0) {
+                moves.add(handlePosition(position, moveTo))
+            } else if (validity == MoveStatus.VALID && i == 0) {
                 moves.add(handlePosition(position, moveTo))
             }
         }
@@ -319,5 +323,26 @@ class Board {
 
     fun filterToSafeMoves(moves: List<Tempo>, color: Color): List<Tempo> {
         return moves.filter { !inCheckAfterMove(color, it) }
+    }
+
+    fun getGameCondition(color: Color): GameCondition {
+        val allPieces = getAllOfColor(color)
+        val allMoves = allPieces.fold(listOf<Tempo>()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
+
+        val inCheck = inCheck(color)
+
+        return if (inCheck) {
+            if (allMoves.isNotEmpty()) {
+                GameCondition.CHECK
+            } else {
+                GameCondition.CHECKMATE
+            }
+        } else {
+            if (allMoves.isNotEmpty()) {
+                GameCondition.NORMAL
+            } else {
+                GameCondition.STALEMATE
+            }
+        }
     }
 }
