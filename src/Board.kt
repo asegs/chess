@@ -1,11 +1,13 @@
 import events.Capture
 import events.Move
+import events.Promote
 import pieces.*
 
 //Do check checking by checking if the king could capture any piece of a certain type by using its moveset.
 
 class Board {
     private val board: List<MutableList<Piece>>
+    private val history: MutableList<Tempo> = mutableListOf()
     val boardHeight = 8
     private val boardWidth = 8
     private val darkBrown = "\u001b[48;2;204;119;34m"
@@ -137,6 +139,16 @@ class Board {
         }
     }
 
+    fun makeMove(sequence: Tempo) {
+        applySequence(sequence)
+        history.add(sequence)
+    }
+
+    fun undoMove() {
+        val move = history.removeLast()
+        undoSequence(move)
+    }
+
     fun moveIsValid(start: Position, end: Position): MoveStatus {
         if ((end.row < 0 || end.row >= boardHeight || end.col < 0 || end.col >= boardWidth)) {
             return MoveStatus.INVALID
@@ -155,10 +167,16 @@ class Board {
     fun handlePosition(from: Position, to: Position): Tempo {
         //Check if this tempo places you in check
         val at = atPosition(to)
+        val fromPiece = atPosition(from)
         val moves = if (at.color == Color.EMPTY) {
             listOf(Move(from, to))
         } else {
             listOf(Capture(to), Move(from, to))
+        }
+        if (fromPiece is Pawn) {
+            if ((fromPiece.color == Color.WHITE && to.row == 0) || (fromPiece.color == Color.BLACK && to.row == boardHeight - 1)) {
+                return Tempo(moves + Promote(to, Queen(fromPiece.color)), from, to)
+            }
         }
         return Tempo(moves, from, to)
     }
@@ -220,10 +238,11 @@ class Board {
         return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
-    //Currently no en passant or promotion or first move.
+    //Currently no en passant.
     fun getAllPawnMoves(position: Position, validateCheck: Boolean): List<Tempo> {
+        val color = atPosition(position).color
         val moves: MutableList<Tempo> = mutableListOf();
-        val direction = if (atPosition(position).color ==  Color.WHITE) 1 else -1
+        val direction = if (color ==  Color.WHITE) 1 else -1
         for (i in -1..1) {
             val moveTo = Position(position.row - (1 * direction), position.col + i)
             val validity = moveIsValid(position, moveTo)
@@ -233,6 +252,16 @@ class Board {
                 moves.add(handlePosition(position, moveTo))
             }
         }
+
+        if ((color == Color.WHITE && position.row == boardHeight - 2) || (color == Color.BLACK && position.row == 1)) {
+            val moveTo = Position(position.row - (2 * direction), position.col)
+            val validity = moveIsValid(position, moveTo)
+            if (validity == MoveStatus.VALID) {
+                moves.add(handlePosition(position, moveTo))
+            }
+        }
+
+
         return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 

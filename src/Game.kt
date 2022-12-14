@@ -15,6 +15,7 @@ object Game {
             val input = readLine()!!
             if (input == "reset") {
                 b = Board()
+                white = true
             } else{
                 if (processMove(input, b)) {
                     white = !white
@@ -32,9 +33,9 @@ object Game {
         }
     }
 
-    fun validateMove(board: Board, from:Position, toPosition: Position): Boolean {
+    fun validateMove(board: Board, from:Position, toPosition: Position): Tempo? {
         val moves = board.atPosition(from).getValidMoves(board, from, true)
-        return moves.any { it.end.equals(toPosition) }
+        return moves.find { it.end.equals(toPosition) }
     }
 
     fun processMove(move: String, board: Board): Boolean {
@@ -49,12 +50,14 @@ object Game {
         val to  = Position(toRow, toCol)
         val from = Position(fromRow, fromCol)
 
-        if (validateMove(board, from, to)) {
-            board.replaceAtPosition(to, board.atPosition(from))
-            board.replaceAtPosition(from, Empty())
-            return true
+        //Get promote type here if contains promote action
+        val maybeMove = validateMove(board, from, to)
+        return if (maybeMove == null) {
+            false
+        } else {
+            board.makeMove(maybeMove)
+            true
         }
-        return false
     }
 
 
