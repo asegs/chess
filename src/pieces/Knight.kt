@@ -7,8 +7,8 @@ import Position
 import Tempo
 
 class Knight(color: Color) : Piece(color, 3, "♞") {
-    override fun getValidMoves(board: Board, position: Position): List<Tempo> {
-        return board.getAllKnightMoves(position);
+    override fun getValidMoves(board: Board, position: Position, checkValidation: Boolean): List<Tempo> {
+        return board.getAllKnightMoves(position, checkValidation);
     }
 
     override fun couldBeCheck(board: Board, from: Position, to: Position): Boolean {

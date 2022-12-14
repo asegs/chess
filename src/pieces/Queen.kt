@@ -8,8 +8,8 @@ import Tempo
 import kotlin.math.abs
 
 class Queen(color: Color) : Piece(color, 9, "♛") {
-    override fun getValidMoves(board: Board, position: Position): List<Tempo> {
-        return board.getAllDiagonalMoves(position) + board.getAllStraightMoves(position)
+    override fun getValidMoves(board: Board, position: Position, checkValidation: Boolean): List<Tempo> {
+        return board.getAllDiagonalMoves(position, checkValidation) + board.getAllStraightMoves(position, checkValidation)
     }
 
     override fun couldBeCheck(board: Board, from: Position, to: Position): Boolean {

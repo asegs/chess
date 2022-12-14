@@ -135,10 +135,19 @@ class Board {
         }
     }
 
-    fun moveIsValid(start: Position, end: Position): Boolean {
-        return if ((end.row < 0 || end.row >= boardHeight || end.col < 0 || end.col >= boardWidth)) {
-            false
-        } else board[start.row][start.col].color != board[end.row][end.col].color
+    fun moveIsValid(start: Position, end: Position): MoveStatus {
+        if ((end.row < 0 || end.row >= boardHeight || end.col < 0 || end.col >= boardWidth)) {
+            return MoveStatus.INVALID
+        }
+        if (atPosition(end).color == Color.EMPTY) {
+            return MoveStatus.VALID
+        }
+        return if (atPosition(start).color == atPosition(end).color) {
+            MoveStatus.INVALID
+        } else {
+            MoveStatus.CAPTURE
+        }
+
     }
 
     fun handlePosition(from: Position, to: Position): Tempo {
@@ -152,85 +161,97 @@ class Board {
         return Tempo(moves, from, to)
     }
 
-    fun getAllStraightMoves(position: Position): List<Tempo> {
+    fun getAllStraightMoves(position: Position, validateCheck: Boolean): List<Tempo> {
         val moves: MutableList<Tempo> = mutableListOf();
         //Left
-        var i = 1
-        while (moveIsValid(position, Position(position.row, position.col - i))) {
-            val to = Position(position.row, position.col - i)
-            moves.add(handlePosition(position, to))
-            i++
+        for (offset in listOf(-1,1)) {
+            var i = 1
+            while (true) {
+                val to = Position(position.row, position.col + (i * offset))
+                val validity = moveIsValid(position, to)
+                if (validity == MoveStatus.INVALID) {
+                    break
+                }
+                moves.add(handlePosition(position, to))
+                if (validity == MoveStatus.CAPTURE) {
+                    break
+                }
+                i++
+            }
+            i = 1
+            while (true) {
+                val to = Position(position.row + (i * offset), position.col)
+                val validity = moveIsValid(position, to)
+                if (validity == MoveStatus.INVALID) {
+                    break
+                }
+                moves.add(handlePosition(position, to))
+                if (validity == MoveStatus.CAPTURE) {
+                    break
+                }
+                i++
+            }
+
         }
-        //Right
-        i = 1
-        while (moveIsValid(position, Position(position.row, position.col + i))) {
-            val to = Position(position.row, position.col + i)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        //Up
-        i = 1
-        while (moveIsValid(position, Position(position.row - i, position.col))) {
-            val to = Position(position.row - i, position.col)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        //Down
-        i = 1
-        while (moveIsValid(position, Position(position.row + i, position.col))) {
-            val to = Position(position.row + i, position.col)
-            moves.add(handlePosition(position, to))
-            i++
-        }
-        return moves
+        return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
-    fun getAllDiagonalMoves(position: Position): List<Tempo> {
+    fun getAllDiagonalMoves(position: Position, validateCheck: Boolean): List<Tempo> {
         val moves: MutableList<Tempo> = mutableListOf();
         for (rowMod in listOf(-1,1)) {
             for (colMod in listOf(-1,1)) {
                 var i = 1
-                while (moveIsValid(position, Position(position.row + (i * rowMod), position.col + (i * colMod)))) {
+                while (true) {
                     val to = Position(position.row + (i * rowMod), position.col + (i * colMod))
+                    val validity = moveIsValid(position, to)
+                    if (validity == MoveStatus.INVALID) {
+                        break
+                    }
                     moves.add(handlePosition(position, to))
+                    if (validity == MoveStatus.CAPTURE) {
+                        break
+                    }
                     i++
                 }
             }
         }
-        return moves;
+        return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
     //Currently no en passant or promotion or first move.
-    fun getAllPawnMoves(position: Position): List<Tempo> {
+    fun getAllPawnMoves(position: Position, validateCheck: Boolean): List<Tempo> {
         val moves: MutableList<Tempo> = mutableListOf();
         val direction = if (atPosition(position).color ==  Color.WHITE) 1 else -1
         for (i in -1..1) {
             val moveTo = Position(position.row - (1 * direction), position.col + i)
-            if (moveIsValid(position, moveTo)) {
+            val validity = moveIsValid(position, moveTo)
+            if (validity != MoveStatus.INVALID) {
                 moves.add(handlePosition(position, moveTo))
             }
         }
-        return moves
+        return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
-    fun getAllKnightMoves(position: Position): List<Tempo> {
+    fun getAllKnightMoves(position: Position, validateCheck: Boolean): List<Tempo> {
         val moves: MutableList<Tempo> = mutableListOf()
         for (rowMod in listOf(-1,1)) {
             for (colMod in listOf(-1,1)) {
                 val long = Position(position.row + (2 * rowMod), position.col + (1 * colMod))
                 val short = Position(position.row + (1 * rowMod), position.col + (2 * colMod))
-                if (moveIsValid(position, long)) {
+                val validityLong = moveIsValid(position, long)
+                if (validityLong != MoveStatus.INVALID) {
                     moves.add(handlePosition(position, long))
                 }
-                if (moveIsValid(position, short)) {
+                val validityShort = moveIsValid(position, short)
+                if (validityShort != MoveStatus.INVALID) {
                     moves.add(handlePosition(position, short))
                 }
             }
         }
-        return moves
+        return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
-    fun getAllKingMoves(position: Position): List<Tempo> {
+    fun getAllKingMoves(position: Position, validateCheck: Boolean): List<Tempo> {
         val moves: MutableList<Tempo> = mutableListOf()
         for (rowMod in -1..1) {
             for (colMod in -1..1) {
@@ -238,12 +259,13 @@ class Board {
                     continue
                 }
                 val to = Position(position.row + rowMod, position.col + colMod)
-                if (moveIsValid(position, to)) {
+                val validity = moveIsValid(position, to)
+                if (validity != MoveStatus.INVALID) {
                     moves.add(handlePosition(position, to))
                 }
             }
         }
-        return moves
+        return if (validateCheck) filterToSafeMoves(moves, atPosition(position).color) else moves
     }
 
     fun otherColor(color: Color): Color {
@@ -262,15 +284,7 @@ class Board {
         val kingLocation = findKing(color)
 
         val possibleThreats = enemyPieces.filter { it.first.couldBeCheck(this, it.second, kingLocation) }
-
-        //Find all enemy piece
-        //Find king
-        //Run optional heuristic on each piece to exclude it
-        //Find valid moves from king for each enemy piece move set
-        //See if any pieces capturable by that move set are of the same type
-
-        //Stub
-        return false
+        return possibleThreats.any { piece -> piece.first.getValidMoves(this, piece.second, false).any { it.end.equals(kingLocation) } }
     }
 
     fun getAllOfColor(color: Color): MutableList<Pair<Piece, Position>> {
@@ -301,5 +315,9 @@ class Board {
         val inCheck = inCheck(color)
         undoSequence(sequence)
         return inCheck
+    }
+
+    fun filterToSafeMoves(moves: List<Tempo>, color: Color): List<Tempo> {
+        return moves.filter { !inCheckAfterMove(color, it) }
     }
 }

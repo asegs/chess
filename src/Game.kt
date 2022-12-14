@@ -33,7 +33,7 @@ object Game {
     }
 
     fun validateMove(board: Board, from:Position, toPosition: Position): Boolean {
-        val moves = board.atPosition(from).getValidMoves(board, from)
+        val moves = board.atPosition(from).getValidMoves(board, from, true)
         return moves.any { it.end.equals(toPosition) }
     }
 
