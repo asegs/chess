@@ -17,6 +17,12 @@ class Board {
     private val bold = "\u001b[1m"
     private val reset = "\u001b[0m"
 
+    private val moveWhite = "\u001b[48;2;122;225;110m"
+    private val captureWhite = "\u001b[48;2;225;110;110m"
+
+    private val moveBlack = "\u001b[48;2;99;204;34m"
+    private val captureBlack = "\u001b[48;2;204;68;34m"
+
     constructor(board: List<MutableList<Piece>>) {
         this.board = board
     }
@@ -64,14 +70,30 @@ class Board {
         return row
     }
 
-    fun printSquare(background: Color, piece: Piece?) {
-        if (background == Color.WHITE) {
-            print(lightBrown)
+    fun tintEvent(color: Color, status: MoveStatus): String {
+        if (color == Color.WHITE) {
+            if (status == MoveStatus.VALID) {
+                return moveWhite
+            }
+            if (status == MoveStatus.CAPTURE) {
+                return captureWhite
+            }
+            return lightBrown
         } else {
-            print(darkBrown)
+            if (status == MoveStatus.VALID) {
+                return moveBlack
+            }
+            if (status == MoveStatus.CAPTURE) {
+                return captureBlack
+            }
+            return darkBrown
         }
+    }
+
+    fun printSquare(background: String, piece: Piece) {
+        print(background)
         print(bold)
-        if (piece!!.color == Color.WHITE) {
+        if (piece.color == Color.WHITE) {
             print(whiteFg)
         } else {
             print(blackFg)
@@ -81,13 +103,24 @@ class Board {
     }
 
     fun printBoard() {
+        printBoard(listOf())
+    }
+
+    fun printFlippedBoard() {
+        printFlippedBoard(listOf())
+    }
+
+    fun printBoard(moves: List<Tempo>) {
+        val sparseMoves = temposToSparseArray(moves)
         println(getGameCondition(Color.WHITE))
         println(scoreBoard())
         println(" abcdefgh")
         for (row in 0 until boardHeight) {
             print(boardHeight - row)
             for (col in 0 until boardWidth) {
-                printSquare(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, board[row][col])
+                val validity = tempoEvents(sparseMoves[row][col])
+                printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
+
             }
             print(boardHeight - row)
             println()
@@ -95,14 +128,16 @@ class Board {
         println(" abcdefgh")
     }
 
-    fun printFlippedBoard() {
+    fun printFlippedBoard(moves: List<Tempo>) {
+        val sparseMoves = temposToSparseArray(moves)
         println(getGameCondition(Color.BLACK))
         println(scoreBoard())
         println(" hgfedcba")
         for (row in boardHeight - 1 downTo 0) {
             print(boardHeight - row)
             for (col in boardWidth - 1 downTo 0) {
-                printSquare(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, board[row][col])
+                val validity = tempoEvents(sparseMoves[row][col])
+                printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
             }
             print(boardHeight - row)
             println()
@@ -373,5 +408,33 @@ class Board {
                 GameCondition.STALEMATE
             }
         }
+    }
+
+    fun tempoEvents(tempo: Tempo): MoveStatus {
+        if (tempo.events.any { it is Capture }) {
+            return MoveStatus.CAPTURE
+        }
+        if (tempo.events.any { it is Move }) {
+            return MoveStatus.VALID
+        }
+
+        return MoveStatus.INVALID
+    }
+
+    fun temposToSparseArray(tempos: List<Tempo>): MutableList<MutableList<Tempo>> {
+        val sparse: MutableList<MutableList<Tempo>> = mutableListOf()
+        for (row in 0..boardHeight) {
+            val rowList: MutableList<Tempo> = mutableListOf()
+            for (col in 0..boardWidth) {
+                rowList.add(Tempo(listOf(),Position(-1,-1),Position(-1,-1)))
+            }
+            sparse.add(rowList)
+        }
+
+        for (tempo in tempos) {
+            sparse[tempo.end.row][tempo.end.col] = tempo
+        }
+
+        return sparse
     }
 }

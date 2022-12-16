@@ -11,24 +11,29 @@ object Game {
         }
         b.printBoard()
         while (true) {
+            var changed = false
             print("> ")
             val input = readLine()!!
             if (input == "reset") {
                 b = Board()
                 white = true
             } else{
-                if (processMove(input, b)) {
+                if (processMove(input, b, white)) {
                     white = !white
+                    changed = true
                 }
 
             }
-            for (i in 0 until 40) {
-                println()
-            }
-            if (white) {
-                b.printBoard()
-            } else {
-                b.printFlippedBoard()
+
+            if (changed) {
+                for (i in 0 until 40) {
+                    println()
+                }
+                if (white) {
+                    b.printBoard()
+                } else {
+                    b.printFlippedBoard()
+                }
             }
         }
     }
@@ -38,8 +43,16 @@ object Game {
         return moves.find { it.end.equals(toPosition) }
     }
 
-    fun processMove(move: String, board: Board): Boolean {
+    fun processMove(move: String, board: Board, white:Boolean): Boolean {
         if (move.length < 4) {
+            if (move.length == 2) {
+                val fromCol = move[0] - 'a'
+                val fromRow = board.boardHeight - (move[1] - '1') - 1
+                val from = Position(fromRow, fromCol)
+                val at = board.atPosition(from)
+                val moves = at.getValidMoves(board, from, true)
+                if (white) board.printBoard(moves) else board.printFlippedBoard(moves)
+            }
             return false
         }
         val fromCol = move[0] - 'a'
