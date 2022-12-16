@@ -389,10 +389,14 @@ class Board {
         return moves.filter { !inCheckAfterMove(color, it) }
     }
 
-    fun getGameCondition(color: Color): GameCondition {
+    fun getAllMoves(color: Color): List<Tempo> {
         val allPieces = getAllOfColor(color)
-        val allMoves = allPieces.fold(listOf<Tempo>()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
+        return allPieces.fold(listOf<Tempo>()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
+    }
 
+    fun getGameCondition(color: Color): GameCondition {
+
+        val allMoves = getAllMoves(color)
         val inCheck = inCheck(color)
 
         return if (inCheck) {

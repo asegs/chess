@@ -1,10 +1,10 @@
-import pieces.Empty
 import kotlin.jvm.JvmStatic
 
 object Game {
     @JvmStatic
     fun main(args: Array<String>) {
         var b = Board()
+        var bot = Bot()
         var white = true
         for (i in 0 until 40) {
             println()
@@ -19,7 +19,7 @@ object Game {
                 white = true
             } else{
                 if (processMove(input, b, white)) {
-                    white = !white
+                    //white = !white
                     changed = true
                 }
 
@@ -31,8 +31,15 @@ object Game {
                 }
                 if (white) {
                     b.printBoard()
+                    val move = bot.level1(b, Color.BLACK)
+                    if (move != null) {
+                        b.makeMove(move)
+                    } else {
+                        println(b.getGameCondition(Color.BLACK))
+                    }
+                    b.printBoard()
                 } else {
-                    b.printFlippedBoard()
+                    //b.printFlippedBoard()
                 }
             }
         }
