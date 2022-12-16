@@ -153,6 +153,10 @@ class Board {
         }
     }
 
+    fun scoreBoard(color: Color): Int {
+        return if (color == Color.WHITE) scoreBoard() else scoreBoard() * -1
+    }
+
 
     fun replaceAtPosition(position: Position, newPiece: Piece) {
         board[position.row][position.col] = newPiece

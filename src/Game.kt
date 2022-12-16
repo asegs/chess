@@ -31,7 +31,7 @@ object Game {
                 }
                 if (white) {
                     b.printBoard()
-                    val move = bot.level1(b, Color.BLACK)
+                    val move = bot.level2(b, Color.BLACK)
                     if (move != null) {
                         b.makeMove(move)
                     } else {
