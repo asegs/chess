@@ -11,37 +11,59 @@ object Game {
         }
         b.printBoard()
         while (true) {
-            var changed = false
-            print("> ")
-            val input = readLine()!!
-            if (input == "reset") {
-                b = Board()
-                white = true
-            } else{
-                if (processMove(input, b, white)) {
-                    //white = !white
-                    changed = true
-                }
-
-            }
-
-            if (changed) {
+            val whiteMove = bot.minimax(b, 4, Color.WHITE)
+            if (whiteMove.first != null) {
+                b.makeMove(whiteMove.first!!)
                 for (i in 0 until 40) {
                     println()
                 }
-                if (white) {
-                    b.printBoard()
-                    val move = bot.level2(b, Color.BLACK)
-                    if (move != null) {
-                        b.makeMove(move)
-                    } else {
-                        println(b.getGameCondition(Color.BLACK))
-                    }
-                    b.printBoard()
-                } else {
-                    //b.printFlippedBoard()
-                }
+                b.printBoard()
+            } else {
+                println("White cannot move, " + b.getGameCondition(Color.WHITE))
+                break
             }
+            val blackMove = bot.minimax(b, 4, Color.BLACK)
+            if (blackMove.first != null) {
+                b.makeMove(blackMove.first!!)
+                for (i in 0 until 40) {
+                    println()
+                }
+                b.printBoard()
+            } else {
+                println("Black cannot move, " + b.getGameCondition(Color.BLACK))
+                break
+            }
+//            var changed = false
+//            print("> ")
+//            val input = readLine()!!
+//            if (input == "reset") {
+//                b = Board()
+//                white = true
+//            } else{
+//                if (processMove(input, b, white)) {
+//                    //white = !white
+//                    changed = true
+//                }
+//
+//            }
+//
+//            if (changed) {
+//                for (i in 0 until 40) {
+//                    println()
+//                }
+//                if (white) {
+//                    b.printBoard()
+//                    val move = bot.minimax(b, 3, Color.BLACK)
+//                    if (move.first != null) {
+//                        b.makeMove(move.first!!)
+//                    } else {
+//                        println(b.getGameCondition(Color.BLACK))
+//                    }
+//                    b.printBoard()
+//                } else {
+//                    //b.printFlippedBoard()
+//                }
+//            }
         }
     }
 
@@ -59,6 +81,14 @@ object Game {
                 val at = board.atPosition(from)
                 val moves = at.getValidMoves(board, from, true)
                 if (white) board.printBoard(moves) else board.printFlippedBoard(moves)
+            }
+
+            if (move == "h") {
+                val bot = Bot()
+                val suggestion = bot.minimax(board, 4, Color.WHITE)
+                board.printBoard(listOf(suggestion.first!!))
+                print(board.atPosition(suggestion.first!!.start)::class.simpleName)
+
             }
             return false
         }
