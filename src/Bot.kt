@@ -1,13 +1,16 @@
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.exitProcess
 
 class Bot {
 
-    fun alphaBetaRoot(board: Board, depth: Int, color: Color): Tempo? {
+    fun alphaBetaRoot(board: Board, depth: Int, color: Color, random: Boolean=true): Tempo? {
         val moves = board.getAllMoves(color)
         var bestMove = Float.NEGATIVE_INFINITY
         var bestMoveFound:Tempo? = null
-
+        var progress = 0
+        print("\r                       ")
+        print("\r$color:$progress/${moves.size}")
         for (move in moves) {
             board.makeMove(move)
             val value = alphabeta(board, depth - 1, color, board.otherColor(color))
@@ -17,12 +20,15 @@ class Bot {
                 bestMoveFound = move
             }
             else if (value == bestMove) {
-                bestMoveFound = if (bestMoveFound == null) {
+                bestMoveFound = if (random) if (bestMoveFound == null) {
                     move
                 } else {
                     listOf(bestMoveFound, move).random()
-                }
+                } else move
             }
+            progress++
+            print("\r                       ")
+            print("\r$color:$progress/${moves.size}")
         }
         return bestMoveFound
     }
@@ -68,7 +74,7 @@ class Bot {
         }
     }
 
-    fun minimax(board: Board, depth: Int, scoreFor: Color, turn: Color = scoreFor): Pair<Tempo?, Float> {
+    fun minimax(board: Board, depth: Int, scoreFor: Color, random: Boolean=true, turn: Color = scoreFor): Pair<Tempo?, Float> {
         if (depth == 0) {
             return Pair(null, board.scoreBoard(scoreFor).toFloat())
         }
@@ -79,13 +85,13 @@ class Bot {
         }
         val scored = children.map {
                 board.makeMove(it)
-                val scoredChild = minimax(board, depth - 1, scoreFor, board.otherColor(turn))
+                val scoredChild = minimax(board, depth - 1, scoreFor, random, board.otherColor(turn))
                 val scoredWithMove = Pair(it, scoredChild.second)
                 board.undoMove()
                 scoredWithMove
             }
 
-        return randomExtreme(minimize, scored)
+        return if (random) randomExtreme(minimize, scored) else firstOrNullAlt(scored)
 
 
     }
@@ -93,6 +99,29 @@ class Bot {
     fun randomExtreme(minimize: Boolean, scored: List<Pair<Tempo?, Float>>): Pair<Tempo?, Float> {
         val extreme = if (minimize) scored.minByOrNull { it.second } else scored.maxByOrNull { it.second }
         return scored.filter { it.second == extreme!!.second }.random()
+    }
+
+    fun firstOrNullAlt(scored: List<Pair<Tempo, Float>>): Pair<Tempo?, Float> {
+        if (scored.isEmpty()) {
+            return Pair(null, 0F)
+        }
+        return scored.first()
+    }
+
+    fun confirmEqual(board:Board, depth: Int, color: Color) {
+        val alphaMove = alphaBetaRoot(board, depth, color, false)
+        val miniMove = minimax(board, depth, color, false)
+        if (alphaMove == null && miniMove.first == null) {
+            return
+        }
+
+        if (!alphaMove!!.start.equals(miniMove.first!!.start) || !alphaMove.end.equals(miniMove.first!!.end)) {
+            println(board.atPosition(alphaMove.start)::class.simpleName)
+            println(alphaMove.toString())
+            println(board.atPosition(miniMove.first!!.start)::class.simpleName)
+            println(miniMove.first.toString())
+            //exitProcess(1)
+        }
     }
 
 }
