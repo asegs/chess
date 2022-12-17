@@ -12,6 +12,7 @@ object Game {
             }
             b.printBoard()
             if (b.getAllMoves(Color.WHITE).isEmpty()) {
+
                 println("Black wins by " + b.getGameCondition(Color.WHITE))
                 break
             }
@@ -22,6 +23,10 @@ object Game {
             }
 
             if (b.getAllMoves(Color.BLACK).isEmpty()) {
+                for (i in 0 until 40) {
+                    println()
+                }
+                b.printBoard()
                 println("White wins by " + b.getGameCondition(Color.BLACK))
                 break
             }
@@ -38,7 +43,7 @@ object Game {
         return moves.find { it.end.equals(toPosition) }
     }
 
-    fun processMove(move: String, board: Board, white:Boolean): Boolean {
+    fun processMove(move: String, board: Board, color:Color): Boolean {
         if (move.length < 4) {
             if (move.length == 2) {
                 val fromCol = move[0] - 'a'
@@ -46,12 +51,12 @@ object Game {
                 val from = Position(fromRow, fromCol)
                 val at = board.atPosition(from)
                 val moves = at.getValidMoves(board, from, true)
-                if (white) board.printBoard(moves) else board.printFlippedBoard(moves)
+                if (color == Color.WHITE) board.printBoard(moves) else board.printFlippedBoard(moves)
             }
 
             if (move == "h") {
                 val bot = Bot()
-                val suggestion = bot.minimax(board, 4, Color.WHITE)
+                val suggestion = bot.minimax(board, if (board.getAllMoves(color).size > 20) 4 else 5, color)
                 board.printBoard(listOf(suggestion.first!!))
                 print(board.atPosition(suggestion.first!!.start)::class.simpleName)
 
@@ -81,7 +86,7 @@ object Game {
         while (!changed) {
             print("> ")
             val input = readLine()!!
-            if (processMove(input, board, color == Color.WHITE)) {
+            if (processMove(input, board, color)) {
                 changed = true
             }
         }
