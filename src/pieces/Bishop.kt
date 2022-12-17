@@ -15,4 +15,8 @@ class Bishop(color: Color) : Piece(color, 3, "♝") {
     override fun couldBeCheck(board: Board, from: Position, to: Position): Boolean {
         return abs(from.row - to.row) == abs(from.col - to.col)
     }
+
+    override fun isCheckFast(board: Board, from: Position, to: Position): Boolean {
+        return board.isBishopCheck(board, from, to)
+    }
 }

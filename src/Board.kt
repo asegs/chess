@@ -2,6 +2,8 @@ import events.Capture
 import events.Move
 import events.Promote
 import pieces.*
+import kotlin.math.abs
+import kotlin.reflect.KClass
 
 //Do check checking by checking if the king could capture any piece of a certain type by using its moveset.
 
@@ -372,12 +374,50 @@ class Board {
         return Color.EMPTY
     }
 
+
+    fun reverseKingCheck(color: Color, kingLocation: Position, enemies:List<Pair<Piece, Position>>): Boolean {
+        val enemyColor = otherColor(color)
+        val remainingClasses: Set<KClass<out Piece>> = enemies.map { it.first::class }.toSet()
+        if (remainingClasses.contains(Pawn::class)) {
+            if (Pawn(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is Pawn}) {
+                return true
+            }
+        }
+        if (remainingClasses.contains(Queen::class)) {
+            if (Queen(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is Queen}) {
+                return true
+            }
+        }
+        if (remainingClasses.contains(Rook::class)) {
+            if (Rook(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is Rook}) {
+                return true
+            }
+        }
+        if (remainingClasses.contains(Knight::class)) {
+            if (Knight(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is Knight}) {
+                return true
+            }
+        }
+        if (remainingClasses.contains(Bishop::class)) {
+            if (Bishop(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is Bishop}) {
+                return true
+            }
+        }
+        if (remainingClasses.contains(King::class)) {
+            if (King(color).getValidMoves(this, kingLocation, false).any { atPosition(it.end).color == enemyColor && atPosition(it.end) is King}) {
+                return true
+            }
+        }
+        return false
+    }
+
     fun inCheck(color: Color): Boolean {
         val enemyPieces = getAllOfColor(otherColor(color))
         val kingLocation = findKing(color)
 
         val possibleThreats = enemyPieces.filter { it.first.couldBeCheck(this, it.second, kingLocation) }
-        return possibleThreats.any { piece -> piece.first.getValidMoves(this, piece.second, false).any { it.end.equals(kingLocation) } }
+        //return possibleThreats.any { it.first.isCheckFast(this, it.second, kingLocation) }
+        return reverseKingCheck(color, kingLocation, possibleThreats)
     }
 
     fun getAllOfColor(color: Color): MutableList<Pair<Piece, Position>> {
@@ -465,5 +505,42 @@ class Board {
         }
 
         return sparse
+    }
+
+    fun isBishopCheck(board: Board, from:Position, to:Position): Boolean {
+        if (from.row == to.row || from.col == to.col) {
+            return false
+        }
+        val diff = abs(from.row - to.row)
+        val rowRate = diff / (from.row - to.row)
+        val colRate = abs(from.col - to.col) / (from.col - to.col)
+        for (i in 1 until diff) {
+            if (board.atPosition(Position(to.row + (i * rowRate), to.col + (i * colRate))).color != Color.EMPTY) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun isRookCheck(board: Board, from:Position, to:Position): Boolean {
+        if (from.row == to.row) {
+            val diff = from.col - to.col
+            val direction = abs(diff) / diff
+            for (i in 1 until abs(diff) - 1) {
+                if (board.atPosition(Position(from.row, to.col + (i * direction))).color != Color.EMPTY) {
+                    return false
+                }
+            }
+            return true
+        } else {
+            val diff = from.row - to.row
+            val direction = abs(diff) / diff
+            for (i in 1 until abs(diff) - 1) {
+                if (board.atPosition(Position(from.col, to.row + (i * direction))).color != Color.EMPTY) {
+                    return false
+                }
+            }
+            return true
+        }
     }
 }

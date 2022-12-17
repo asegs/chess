@@ -15,4 +15,8 @@ class Queen(color: Color) : Piece(color, 9, "♛") {
     override fun couldBeCheck(board: Board, from: Position, to: Position): Boolean {
         return (abs(from.row - to.row) == abs(from.col - to.col)) || from.row == to.row || from.col == to.col
     }
+
+    override fun isCheckFast(board: Board, from: Position, to: Position): Boolean {
+        return board.isRookCheck(board, from, to) || board.isBishopCheck(board, from, to)
+    }
 }

@@ -6,15 +6,22 @@ class Bot {
 
     fun scoreMove(board: Board, move:Tempo, depth:Int, color: Color):Float {
         val copy = board.copyBoard()
-        copy.makeMove(move)
+        copy.applySequence(move)
         val value = alphabeta(copy, depth - 1, color, copy.otherColor(color))
-        copy.undoMove()
+        copy.undoSequence(move)
         return value
     }
 
     fun alphaBetaRoot(board: Board, depth: Int, color: Color, random: Boolean=true): Tempo? {
         val moves = board.getAllMoves(color)
-        val scoredMoves = moves.parallelStream().map { Pair(it, scoreMove(board, it, depth, color)) }.toList()
+        var progress = 0
+        val scoredMoves = moves.parallelStream().map {
+            val scoredMove = Pair(it, scoreMove(board, it, depth, color))
+            progress++
+            print("\r                      ")
+            print("\r$color: $progress/${moves.size}")
+            scoredMove
+        }.toList()
         val maxScore = scoredMoves.maxByOrNull { it.second } ?: return null
         val tiedMoves = scoredMoves.filter { it.second == maxScore.second }
         return if (random) tiedMoves.random().first else tiedMoves.first().first
@@ -35,9 +42,9 @@ class Bot {
         if (!minimize) {
             var value = Float.NEGATIVE_INFINITY
             for (child in children) {
-                board.makeMove(child)
+                board.applySequence(child)
                 value = max(value, alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta))
-                board.undoMove()
+                board.undoSequence(child)
                 newAlpha = max(newAlpha, value)
                 if (newBeta <= newAlpha) {
                     break
@@ -47,10 +54,10 @@ class Bot {
         } else {
             var value = Float.POSITIVE_INFINITY
             for (child in children) {
-                board.makeMove(child)
+                board.applySequence(child)
                 value = min(value,alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta))
 
-                board.undoMove()
+                board.undoSequence(child)
                 newBeta = min(newBeta, value)
                 if (newBeta <= newAlpha) {
                     break
