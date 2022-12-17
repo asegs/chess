@@ -41,6 +41,18 @@ class Board {
         )
     }
 
+    fun copyBoard(): Board {
+        val pieces: MutableList<MutableList<Piece>> = mutableListOf()
+        for (row in 0 until boardHeight) {
+            val rowList:MutableList<Piece> = mutableListOf()
+            for (col in 0 until boardWidth) {
+                rowList.add(board[row][col])
+            }
+            pieces.add(rowList)
+        }
+        return Board(pieces)
+    }
+
     fun pawnRow(color: Color): MutableList<Piece> {
         val row: MutableList<Piece> = mutableListOf();
         for (i in 0 until boardWidth) {
@@ -394,8 +406,7 @@ class Board {
     }
 
     fun getAllMoves(color: Color): List<Tempo> {
-        val allPieces = getAllOfColor(color)
-        return allPieces.fold(listOf<Tempo>()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
+        return getAllOfColor(color).fold(listOf()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
     }
 
     fun getGameCondition(color: Color): GameCondition {

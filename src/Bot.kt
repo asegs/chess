@@ -3,75 +3,68 @@ import kotlin.math.min
 
 class Bot {
 
-    fun scoreMove(board:Board, move:Tempo, color: Color): Float {
-        board.makeMove(move)
-        val score = board.scoreBoard(color)
-        board.undoMove()
-        return score.toFloat()
+    fun alphaBetaRoot(board: Board, depth: Int, color: Color): Tempo? {
+        val moves = board.getAllMoves(color)
+        var bestMove = Float.NEGATIVE_INFINITY
+        var bestMoveFound:Tempo? = null
+
+        for (move in moves) {
+            board.makeMove(move)
+            val value = alphabeta(board, depth - 1, color, board.otherColor(color))
+            board.undoMove()
+            if (value > bestMove) {
+                bestMove = value
+                bestMoveFound = move
+            }
+            else if (value == bestMove) {
+                bestMoveFound = if (bestMoveFound == null) {
+                    move
+                } else {
+                    listOf(bestMoveFound, move).random()
+                }
+            }
+        }
+        return bestMoveFound
     }
 
-    fun alphabeta(board: Board, depth: Int, scoreFor: Color, turn: Color=scoreFor, alpha:Float=Float.NEGATIVE_INFINITY, beta:Float=Float.POSITIVE_INFINITY): Pair<Tempo?, Float> {
+    fun alphabeta(board: Board, depth: Int, scoreFor: Color, turn: Color=scoreFor, alpha:Float=Float.NEGATIVE_INFINITY, beta:Float=Float.POSITIVE_INFINITY): Float {
         var newAlpha = alpha
         var newBeta = beta
         if (depth == 0) {
-            return Pair(null, board.scoreBoard(scoreFor).toFloat())
+            return board.scoreBoard(scoreFor).toFloat()
         }
         val children = board.getAllMoves(turn)
         val minimize = scoreFor != turn
         if (children.isEmpty()) {
-            return if (minimize) Pair(null, Float.MAX_VALUE) else Pair(null, Float.MIN_VALUE)
+            return if (minimize) Float.MAX_VALUE else Float.NEGATIVE_INFINITY
         }
 
         if (!minimize) {
             var value = Float.NEGATIVE_INFINITY
-            var bestMove:Tempo? = null
             for (child in children) {
                 board.makeMove(child)
-                val scoredPair = alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta)
-                if (scoredPair.second > value) {
-                    value = scoredPair.second
-                    bestMove = child
-                }
-                if (scoredPair.second == value) {
-                    bestMove = if (bestMove == null) {
-                        child
-                    } else {
-                        listOf(bestMove, child).random()
-                    }
-                }
+                value = max(value, alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta))
                 board.undoMove()
-                if (value >= newBeta) {
+                newAlpha = max(newAlpha, value)
+                if (newBeta <= newAlpha) {
                     break
                 }
-                newAlpha = max(newAlpha, value)
             }
-            return Pair(bestMove, value)
+            return value
         } else {
             var value = Float.POSITIVE_INFINITY
-            var bestMove:Tempo? = null
             for (child in children) {
                 board.makeMove(child)
-                val scoredPair = alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta)
-                if (scoredPair.second < value) {
-                    value = scoredPair.second
-                    bestMove = child
-                }
-
-                if (scoredPair.second == value) {
-                    bestMove = if (bestMove == null) {
-                        child
-                    } else {
-                        listOf(bestMove, child).random()
-                    }
-                }
+                value = min(value,alphabeta(board, depth - 1, scoreFor, board.otherColor(turn), newAlpha, newBeta))
 
                 board.undoMove()
-                if (value <= newAlpha) {
+                newBeta = min(newBeta, value)
+                if (newBeta <= newAlpha) {
                     break
                 }
-                newBeta = min(newBeta, value)
+
             }
-            return Pair(bestMove, value)
+            return value
         }
     }
 

@@ -22,11 +22,11 @@ object Game {
                 botTurn(b, Color.WHITE, args[0].toInt())
             }
 
+            for (i in 0 until 40) {
+                println()
+            }
+            b.printBoard()
             if (b.getAllMoves(Color.BLACK).isEmpty()) {
-                for (i in 0 until 40) {
-                    println()
-                }
-                b.printBoard()
                 println("White wins by " + b.getGameCondition(Color.BLACK))
                 break
             }
@@ -56,9 +56,9 @@ object Game {
 
             if (move == "h") {
                 val bot = Bot()
-                val suggestion = bot.alphabeta(board, if (board.getAllMoves(color).size > 20) 5 else 6, color)
-                board.printBoard(listOf(suggestion.first!!))
-                print(board.atPosition(suggestion.first!!.start)::class.simpleName)
+                val suggestion = bot.alphaBetaRoot(board, if (board.getAllMoves(color).size > 20) 5 else 6, color)
+                board.printBoard(listOf(suggestion!!))
+                print(board.atPosition(suggestion.start)::class.simpleName)
 
             }
             return false
@@ -101,9 +101,9 @@ object Game {
     }
 
     fun botTurn(board: Board, color: Color, level:Int) {
-        val move = Bot().alphabeta(board, level, color)
-        if (move.first != null) {
-            board.makeMove(move.first!!)
+        val move = Bot().alphaBetaRoot(board, level, color)
+        if (move != null) {
+            board.makeMove(move)
         }
     }
 
