@@ -6,15 +6,20 @@ object Game {
         val p1Human = args[0] == "h"
         val p2Human = args[1] == "h"
         val b = Board()
+        var condition: GameCondition
         while (true) {
             for (i in 0 until 40) {
                 println()
             }
             b.printBoard()
-            if (b.getAllMoves(Color.WHITE).isEmpty()) {
-
-                println("Black wins by " + b.getGameCondition(Color.WHITE))
-                break
+            condition = b.getGameCondition(Color.WHITE)
+            if (condition != GameCondition.NORMAL) {
+                if (condition == GameCondition.CHECKMATE) {
+                    println("Black wins by " + GameCondition.CHECKMATE)
+                    break
+                } else if (condition == GameCondition.DRAW || condition == GameCondition.STALEMATE) {
+                    println("Draw by $condition")
+                }
             }
             if (p1Human) {
                 humanTurn(b, Color.WHITE)
@@ -26,9 +31,14 @@ object Game {
                 println()
             }
             b.printBoard()
-            if (b.getAllMoves(Color.BLACK).isEmpty()) {
-                println("White wins by " + b.getGameCondition(Color.BLACK))
-                break
+            condition = b.getGameCondition(Color.BLACK)
+            if (condition != GameCondition.NORMAL) {
+                if (condition == GameCondition.CHECKMATE) {
+                    println("White wins by " + GameCondition.CHECKMATE)
+                    break
+                } else if (condition == GameCondition.DRAW || condition == GameCondition.STALEMATE) {
+                    println("Draw by $condition")
+                }
             }
             if (p2Human) {
                 humanTurn(b, Color.BLACK)

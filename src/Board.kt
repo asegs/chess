@@ -460,6 +460,18 @@ class Board {
     }
 
     fun getGameCondition(color: Color): GameCondition {
+        val whitePieces = getAllOfColor(Color.WHITE)
+        val blackPieces = getAllOfColor(Color.BLACK)
+
+        if (whitePieces.size == 1 && blackPieces.size == 1) {
+            return GameCondition.DRAW
+        }
+
+        if (whitePieces.size <= 2 && blackPieces.size <= 2) {
+            if (whitePieces.any { it.first is Bishop || it.first is Knight } && blackPieces.any { it.first is Bishop || it.first is Knight }) {
+                return GameCondition.DRAW
+            }
+        }
 
         val allMoves = getAllMoves(color)
         val inCheck = inCheck(color)
