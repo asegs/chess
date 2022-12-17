@@ -56,7 +56,7 @@ object Game {
 
             if (move == "h") {
                 val bot = Bot()
-                val suggestion = bot.minimax(board, if (board.getAllMoves(color).size > 20) 4 else 5, color)
+                val suggestion = bot.alphabeta(board, if (board.getAllMoves(color).size > 20) 5 else 6, color)
                 board.printBoard(listOf(suggestion.first!!))
                 print(board.atPosition(suggestion.first!!.start)::class.simpleName)
 
@@ -101,7 +101,7 @@ object Game {
     }
 
     fun botTurn(board: Board, color: Color, level:Int) {
-        val move = Bot().minimax(board, level, color)
+        val move = Bot().alphabeta(board, level, color)
         if (move.first != null) {
             board.makeMove(move.first!!)
         }
