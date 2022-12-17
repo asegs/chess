@@ -62,6 +62,9 @@ class Bot {
         }
         val children = board.getAllMoves(turn)
         val minimize = scoreFor != turn
+        if (children.isEmpty()) {
+            return if (minimize) Pair(null, Float.MIN_VALUE) else Pair(null, Float.MAX_VALUE)
+        }
         val scored = children.map {
                 board.makeMove(it)
                 val scoredChild = minimax(board, depth - 1, scoreFor, board.otherColor(turn), false)
@@ -70,31 +73,14 @@ class Bot {
                 scoredWithMove
             }
 
-//        var scored: List<Pair<Tempo?, Float>>? = null
-//
-//        if (top) {
-//            val callables: List<Callable<Pair<Tempo?, Float>>> = children.map {
-//                board.makeMove(it)
-//                val scoredChild = minimax(board, depth - 1, scoreFor, board.otherColor(turn), false)
-//                val scoredWithMove = Pair(it, scoredChild.second)
-//                board.undoMove()
-//                scoredWithMove }.map { Callable<Pair<Tempo?, Float>> {it} }
-//            val executor = Executors.newFixedThreadPool(callables.size)
-//            scored = executor.invokeAll(callables).map { it.get() }
-//        } else {
-//            scored = children.map {
-//                board.makeMove(it)
-//                val scoredChild = minimax(board, depth - 1, scoreFor, board.otherColor(turn), false)
-//                val scoredWithMove = Pair(it, scoredChild.second)
-//                board.undoMove()
-//                scoredWithMove
-//            }
-//        }
-
-        return (if (minimize) scored.minByOrNull { it.second } else scored.maxByOrNull { it.second })
-                ?: return if (minimize) Pair(null, Float.MIN_VALUE) else Pair(null, Float.MAX_VALUE)
+        return randomExtreme(minimize, scored)
 
 
+    }
+
+    fun randomExtreme(minimize: Boolean, scored: List<Pair<Tempo?, Float>>): Pair<Tempo?, Float> {
+        val extreme = if (minimize) scored.minByOrNull { it.second } else scored.maxByOrNull { it.second }
+        return scored.filter { it.second == extreme!!.second }.random()
     }
 
 }
