@@ -3,67 +3,33 @@ import kotlin.jvm.JvmStatic
 object Game {
     @JvmStatic
     fun main(args: Array<String>) {
-        var b = Board()
-        var bot = Bot()
-        var white = true
-        for (i in 0 until 40) {
-            println()
-        }
-        b.printBoard()
+        val p1Human = args[0] == "h"
+        val p2Human = args[1] == "h"
+        val b = Board()
         while (true) {
-            val whiteMove = bot.minimax(b, 4, Color.WHITE)
-            if (whiteMove.first != null) {
-                b.makeMove(whiteMove.first!!)
-                for (i in 0 until 40) {
-                    println()
-                }
-                b.printBoard()
-            } else {
-                println("White cannot move, " + b.getGameCondition(Color.WHITE))
+            for (i in 0 until 40) {
+                println()
+            }
+            b.printBoard()
+            if (b.getAllMoves(Color.WHITE).isEmpty()) {
+                println("Black wins by " + b.getGameCondition(Color.WHITE))
                 break
             }
-            val blackMove = bot.minimax(b, 4, Color.BLACK)
-            if (blackMove.first != null) {
-                b.makeMove(blackMove.first!!)
-                for (i in 0 until 40) {
-                    println()
-                }
-                b.printBoard()
+            if (p1Human) {
+                humanTurn(b, Color.WHITE)
             } else {
-                println("Black cannot move, " + b.getGameCondition(Color.BLACK))
+                botTurn(b, Color.WHITE, args[0].toInt())
+            }
+
+            if (b.getAllMoves(Color.BLACK).isEmpty()) {
+                println("White wins by " + b.getGameCondition(Color.BLACK))
                 break
             }
-//            var changed = false
-//            print("> ")
-//            val input = readLine()!!
-//            if (input == "reset") {
-//                b = Board()
-//                white = true
-//            } else{
-//                if (processMove(input, b, white)) {
-//                    //white = !white
-//                    changed = true
-//                }
-//
-//            }
-//
-//            if (changed) {
-//                for (i in 0 until 40) {
-//                    println()
-//                }
-//                if (white) {
-//                    b.printBoard()
-//                    val move = bot.minimax(b, 3, Color.BLACK)
-//                    if (move.first != null) {
-//                        b.makeMove(move.first!!)
-//                    } else {
-//                        println(b.getGameCondition(Color.BLACK))
-//                    }
-//                    b.printBoard()
-//                } else {
-//                    //b.printFlippedBoard()
-//                }
-//            }
+            if (p2Human) {
+                humanTurn(b, Color.BLACK)
+            } else {
+                botTurn(b, Color.BLACK, args[1].toInt())
+            }
         }
     }
 
@@ -107,6 +73,32 @@ object Game {
         } else {
             board.makeMove(maybeMove)
             true
+        }
+    }
+
+    fun humanTurn(board: Board, color: Color) {
+        var changed = false
+        while (!changed) {
+            print("> ")
+            val input = readLine()!!
+            if (processMove(input, board, color == Color.WHITE)) {
+                changed = true
+            }
+        }
+        for (i in 0 until 40) {
+            println()
+        }
+        if (color == Color.WHITE) {
+            board.printBoard()
+        } else {
+            board.printFlippedBoard()
+        }
+    }
+
+    fun botTurn(board: Board, color: Color, level:Int) {
+        val move = Bot().minimax(board, level, color)
+        if (move.first != null) {
+            board.makeMove(move.first!!)
         }
     }
 
