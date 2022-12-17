@@ -23,6 +23,8 @@ class Board {
     private val moveBlack = "\u001b[48;2;99;204;34m"
     private val captureBlack = "\u001b[48;2;204;68;34m"
 
+    private val previousStates: MutableMap<Int, Int> = mutableMapOf()
+
     constructor(board: List<MutableList<Piece>>) {
         this.board = board
     }
@@ -193,11 +195,18 @@ class Board {
     fun makeMove(sequence: Tempo) {
         applySequence(sequence)
         history.add(sequence)
+//        previousStates.putIfAbsent(board.hashCode(), 0)
+//        previousStates[board.hashCode()] = previousStates[board.hashCode()]!! + 1
     }
 
     fun undoMove() {
         val move = history.removeLast()
+//        previousStates[board.hashCode()] = previousStates.getOrDefault(board.hashCode(), 1) - 1
         undoSequence(move)
+    }
+
+    fun moveOccurredTwice():Boolean {
+        return previousStates.getOrDefault(board.hashCode(), 0) >= 2
     }
 
     fun moveIsValid(start: Position, end: Position): MoveStatus {
@@ -397,8 +406,9 @@ class Board {
     fun inCheckAfterMove(color: Color, sequence: Tempo): Boolean {
         applySequence(sequence)
         val inCheck = inCheck(color)
+        //val willCauseRepetition = moveOccurredTwice()
         undoSequence(sequence)
-        return inCheck
+        return inCheck //|| willCauseRepetition
     }
 
     fun filterToSafeMoves(moves: List<Tempo>, color: Color): List<Tempo> {

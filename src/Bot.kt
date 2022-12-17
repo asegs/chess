@@ -1,36 +1,23 @@
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.system.exitProcess
+import kotlin.streams.toList
 
 class Bot {
 
+    fun scoreMove(board: Board, move:Tempo, depth:Int, color: Color):Float {
+        val copy = board.copyBoard()
+        copy.makeMove(move)
+        val value = alphabeta(copy, depth - 1, color, copy.otherColor(color))
+        copy.undoMove()
+        return value
+    }
+
     fun alphaBetaRoot(board: Board, depth: Int, color: Color, random: Boolean=true): Tempo? {
         val moves = board.getAllMoves(color)
-        var bestMove = Float.NEGATIVE_INFINITY
-        var bestMoveFound:Tempo? = null
-        var progress = 0
-        print("\r                       ")
-        print("\r$color:$progress/${moves.size}")
-        for (move in moves) {
-            board.makeMove(move)
-            val value = alphabeta(board, depth - 1, color, board.otherColor(color))
-            board.undoMove()
-            if (value > bestMove) {
-                bestMove = value
-                bestMoveFound = move
-            }
-            else if (value == bestMove) {
-                bestMoveFound = if (random) if (bestMoveFound == null) {
-                    move
-                } else {
-                    listOf(bestMoveFound, move).random()
-                } else move
-            }
-            progress++
-            print("\r                       ")
-            print("\r$color:$progress/${moves.size}")
-        }
-        return bestMoveFound
+        val scoredMoves = moves.parallelStream().map { Pair(it, scoreMove(board, it, depth, color)) }.toList()
+        val maxScore = scoredMoves.maxByOrNull { it.second } ?: return null
+        val tiedMoves = scoredMoves.filter { it.second == maxScore.second }
+        return if (random) tiedMoves.random().first else tiedMoves.first().first
     }
 
     fun alphabeta(board: Board, depth: Int, scoreFor: Color, turn: Color=scoreFor, alpha:Float=Float.NEGATIVE_INFINITY, beta:Float=Float.POSITIVE_INFINITY): Float {
