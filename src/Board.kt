@@ -25,6 +25,9 @@ class Board {
     private val moveBlack = "\u001b[48;2;99;204;34m"
     private val captureBlack = "\u001b[48;2;204;68;34m"
 
+    private val fromBlack = "\u001b[48;2;204;204;34m"
+    private val fromWhite = "\u001b[48;2;212;196;74m"
+
     private val previousStates: MutableMap<Int, Int> = mutableMapOf()
 
     constructor(board: List<MutableList<Piece>>) {
@@ -134,8 +137,12 @@ class Board {
         for (row in 0 until boardHeight) {
             print(boardHeight - row)
             for (col in 0 until boardWidth) {
-                val validity = tempoEvents(sparseMoves[row][col])
-                printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
+                if (moves.isNotEmpty() && moves.first().start.equals(Position(row, col))) {
+                    printSquare(if (col % 2 == row % 2) fromWhite else fromBlack, board[row][col])
+                } else {
+                    val validity = tempoEvents(sparseMoves[row][col])
+                    printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
+                }
 
             }
             print(boardHeight - row)
@@ -152,8 +159,12 @@ class Board {
         for (row in boardHeight - 1 downTo 0) {
             print(boardHeight - row)
             for (col in boardWidth - 1 downTo 0) {
-                val validity = tempoEvents(sparseMoves[row][col])
-                printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
+                if (moves.isNotEmpty() && moves.first().start.equals(Position(row, col))) {
+                    printSquare(if (col % 2 == row % 2) fromWhite else fromBlack, board[row][col])
+                } else {
+                    val validity = tempoEvents(sparseMoves[row][col])
+                    printSquare(tintEvent(if (col % 2 == row % 2) Color.WHITE else Color.BLACK, validity), board[row][col])
+                }
             }
             print(boardHeight - row)
             println()

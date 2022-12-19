@@ -3,7 +3,7 @@
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
     <option name="MAIN_CLASS_NAME" value="Game" />
     <module name="Chess" />
-    <option name="PROGRAM_PARAMETERS" value="4 4" />
+    <option name="PROGRAM_PARAMETERS" value="h 5" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

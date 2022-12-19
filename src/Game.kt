@@ -68,8 +68,6 @@ object Game {
                 val bot = Bot()
                 val suggestion = bot.alphaBetaRoot(board, if (board.getAllMoves(color).size > 20) 5 else 6, color)
                 board.printBoard(listOf(suggestion!!))
-                print(board.atPosition(suggestion.start)::class.simpleName)
-
             }
             return false
         }
