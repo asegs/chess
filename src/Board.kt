@@ -131,7 +131,7 @@ class Board {
 
     fun printBoard(moves: List<Tempo>) {
         val sparseMoves = temposToSparseArray(moves)
-        println(getGameCondition(Color.WHITE))
+        //println(getGameCondition(Color.WHITE))
         println(scoreBoard())
         println(" abcdefgh")
         for (row in 0 until boardHeight) {
@@ -328,8 +328,9 @@ class Board {
 
         if ((color == Color.WHITE && position.row == boardHeight - 2) || (color == Color.BLACK && position.row == 1)) {
             val moveTo = Position(position.row - (2 * direction), position.col)
+            val inFront = Position(position.row - (1 * direction), position.col)
             val validity = moveIsValid(position, moveTo)
-            if (validity == MoveStatus.VALID) {
+            if (validity == MoveStatus.VALID || atPosition(inFront).color == Color.EMPTY) {
                 moves.add(handlePosition(position, moveTo))
             }
         }
@@ -425,6 +426,9 @@ class Board {
     fun inCheck(color: Color): Boolean {
         val enemyPieces = getAllOfColor(otherColor(color))
         val kingLocation = findKing(color)
+        if (kingLocation == Position(-1,-1)) {
+            return true
+        }
 
         val possibleThreats = enemyPieces.filter { it.first.couldBeCheck(this, it.second, kingLocation) }
         //return possibleThreats.any { it.first.isCheckFast(this, it.second, kingLocation) }
@@ -441,6 +445,23 @@ class Board {
             }
         }
         return pieces
+    }
+
+    fun fastGetForGameCondition(forColor: Color): Pair<MutableList<Pair<Piece, Position>>,MutableList<Pair<Piece, Position>>> {
+        val myPieces:MutableList<Pair<Piece, Position>> = mutableListOf()
+        val yourPieces:MutableList<Pair<Piece, Position>> = mutableListOf()
+        val yourColor = otherColor(forColor)
+        for ((rowIdx, row) in board.withIndex()) {
+            for ((colIdx, piece) in row.withIndex()) {
+                if (piece.color == forColor) {
+                    myPieces.add(Pair(piece, Position(rowIdx, colIdx)))
+                } else if (piece.color == yourColor) {
+                    yourPieces.add(Pair(piece, Position(rowIdx,colIdx)))
+                }
+            }
+        }
+        return Pair(myPieces, yourPieces)
+
     }
 
     fun findKing(color: Color): Position {
@@ -466,28 +487,37 @@ class Board {
         return moves.filter { !inCheckAfterMove(color, it) }
     }
 
-    fun getAllMoves(color: Color): List<Tempo> {
-        return getAllOfColor(color).fold(listOf()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
+    fun getAllMoves(pieces: MutableList<Pair<Piece, Position>>):List<Tempo> {
+        return pieces.fold(listOf()) { moves, pair -> moves + pair.first.getValidMoves(this, pair.second, true) }
     }
 
-    fun getGameCondition(color: Color): GameCondition {
-        val whitePieces = getAllOfColor(Color.WHITE)
-        val blackPieces = getAllOfColor(Color.BLACK)
+    fun getAllMoves(color: Color): List<Tempo> {
+        return getAllMoves(getAllOfColor(color))
+    }
 
-        if (whitePieces.size == 1 && blackPieces.size == 1) {
-            return GameCondition.DRAW
+    fun gameConditionWithMoves(color: Color): Pair<GameCondition, List<Tempo>> {
+        val gameData = fastGetForGameCondition(color)
+        val myPieces = gameData.first
+        val yourPieces = gameData.second
+        var condition = GameCondition.NORMAL
+
+        if (myPieces.size == 1 && yourPieces.size == 1) {
+            condition = GameCondition.DRAW
         }
 
-        if (whitePieces.size <= 2 && blackPieces.size <= 2) {
-            if (whitePieces.any { it.first is Bishop || it.first is Knight } && blackPieces.any { it.first is Bishop || it.first is Knight }) {
-                return GameCondition.DRAW
+        if (myPieces.size <= 2 && yourPieces.size <= 2) {
+            if (myPieces.any { it.first is Bishop || it.first is Knight } && yourPieces.any { it.first is Bishop || it.first is Knight }) {
+                condition = GameCondition.DRAW
             }
         }
 
-        val allMoves = getAllMoves(color)
+        if (condition == GameCondition.DRAW) {
+            return Pair(condition, listOf())
+        }
         val inCheck = inCheck(color)
+        val allMoves = getAllMoves(myPieces)
 
-        return if (inCheck) {
+        condition = if (inCheck) {
             if (allMoves.isNotEmpty()) {
                 GameCondition.CHECK
             } else {
@@ -500,6 +530,11 @@ class Board {
                 GameCondition.STALEMATE
             }
         }
+        return Pair(condition, allMoves)
+    }
+
+    fun getGameCondition(color: Color): GameCondition {
+        return gameConditionWithMoves(color).first
     }
 
     fun tempoEvents(tempo: Tempo): MoveStatus {

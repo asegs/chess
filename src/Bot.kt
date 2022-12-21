@@ -33,8 +33,16 @@ class Bot {
         if (depth == 0) {
             return board.scoreBoard(scoreFor).toFloat()
         }
-        val children = board.getAllMoves(turn)
         val minimize = scoreFor != turn
+        val gameMetaData = board.gameConditionWithMoves(turn)
+        val condition = gameMetaData.first
+        if (condition == GameCondition.CHECKMATE) {
+            return if (minimize) Float.MAX_VALUE else Float.NEGATIVE_INFINITY
+        }
+        if (condition == GameCondition.DRAW || condition == GameCondition.STALEMATE) {
+            return 0F
+        }
+        val children = gameMetaData.second
         if (children.isEmpty()) {
             return if (minimize) Float.MAX_VALUE else Float.NEGATIVE_INFINITY
         }

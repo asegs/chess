@@ -66,7 +66,7 @@ object Game {
 
             if (move == "h") {
                 val bot = Bot()
-                val suggestion = bot.alphaBetaRoot(board, if (board.getAllMoves(color).size > 20) 5 else 6, color)
+                val suggestion = bot.alphaBetaRoot(board, if (board.getAllMoves(color).size > 100) 5 else 6, color)
                 board.printBoard(listOf(suggestion!!))
             }
             return false
