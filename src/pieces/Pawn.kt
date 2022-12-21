@@ -18,7 +18,6 @@ class Pawn(color: Color) : Piece(color, 1, "♟︎") {
     }
 
     override fun isCheckFast(board: Board, from: Position, to: Position): Boolean {
-        val rowDirection = if (color == Color.WHITE) -1 else 1
-        return (from.row + rowDirection == to.row && (abs(from.col - to.col) == 1))
+        return (from.row + (if (color == Color.WHITE) -1 else 1) == to.row && (abs(from.col - to.col) == 1))
     }
 }

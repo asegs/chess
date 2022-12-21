@@ -431,8 +431,8 @@ class Board {
         }
 
         val possibleThreats = enemyPieces.filter { it.first.couldBeCheck(this, it.second, kingLocation) }
-        //return possibleThreats.any { it.first.isCheckFast(this, it.second, kingLocation) }
-        return reverseKingCheck(color, kingLocation, possibleThreats)
+        return possibleThreats.any { it.first.isCheckFast(this, it.second, kingLocation) }
+        //return reverseKingCheck(color, kingLocation, possibleThreats)
     }
 
     fun getAllOfColor(color: Color): MutableList<Pair<Piece, Position>> {
