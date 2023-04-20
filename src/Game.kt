@@ -1,3 +1,4 @@
+import pieces.*
 import kotlin.jvm.JvmStatic
 
 object Game {
@@ -54,6 +55,26 @@ object Game {
     }
 
     fun processMove(move: String, board: Board, color:Color): Boolean {
+        if (move == "d") {
+            return true
+        }
+        if (move.contains("=")) {
+            val col = move[0] - 'a'
+            val row = board.boardHeight - (move[1] - '1') - 1
+            val pieceColor = if (move[4] == 'w') Color.WHITE else Color.BLACK
+            val piece:Piece = when (move[3]) {
+                'p' -> Pawn(pieceColor)
+                'n' -> Knight(pieceColor)
+                'b' -> Bishop(pieceColor)
+                'r' -> Rook(pieceColor)
+                'q' -> Queen(pieceColor)
+                'k' -> King(pieceColor)
+                else -> Empty()
+            }
+            board.board[row][col] = piece
+            board.printBoard()
+            return false
+        }
         if (move.length < 4) {
             if (move.length == 2) {
                 val fromCol = move[0] - 'a'

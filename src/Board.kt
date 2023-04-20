@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 //Do check checking by checking if the king could capture any piece of a certain type by using its moveset.
 
 class Board {
-    private val board: List<MutableList<Piece>>
+    val board: List<MutableList<Piece>>
     private val history: MutableList<Tempo> = mutableListOf()
     val boardHeight = 8
     private val boardWidth = 8
@@ -330,7 +330,7 @@ class Board {
             val moveTo = Position(position.row - (2 * direction), position.col)
             val inFront = Position(position.row - (1 * direction), position.col)
             val validity = moveIsValid(position, moveTo)
-            if (validity == MoveStatus.VALID || atPosition(inFront).color == Color.EMPTY) {
+            if (validity == MoveStatus.VALID && atPosition(inFront).color == Color.EMPTY) {
                 moves.add(handlePosition(position, moveTo))
             }
         }
